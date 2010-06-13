@@ -20,7 +20,7 @@ setup(name='opencore_zinefarm',
       install_requires=[
         "Werkzeug",
         "Jinja2",
-        "SQLAlchemy==0.5.8",
+        "SQLAlchemy",
         "libopencore",
         "simplejson",
         "pytz",
