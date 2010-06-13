@@ -17,10 +17,15 @@ class ZineFarm(object):
             return webob.exc.HTTPNotFound("No blog found for project %s" % project)(environ, start_response)
         instance_folder = os.path.join(
             self.zine_instances_directory, project)
+
+        # zine makes it very difficult to instantiate its wsgi app for some reason
+        # you have to much around with another module's global
+        # i'm not sure if this is safe, and it's certainly not kosher
         app = object.__new__(CustomRequestApp)
         from zine import _core
         _core._application = app
         app.__init__(instance_folder)
+
         return app(environ, start_response)
 
 def app_factory(zine_instances_directory=None, *args, **kw):
