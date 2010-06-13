@@ -59,8 +59,10 @@ def app_factory(global_conf,
                 admin_info_filename=None,
                 internal_root_url=None,
                 **kw):
-    assert zine_instances_directory is not None and os.path.isdir(zine_instances_directory), \
-        "zine_instances_directory must be supplied and must be an existing directory"
+    assert zine_instances_directory is not None, \
+        "zine_instances_directory must be supplied"
+    assert os.path.isdir(zine_instances_directory), \
+        "zine_instances_directory `%s` does not exist" % zine_instances_directory
     assert shared_secret_filename is not None and os.path.isfile(shared_secret_filename), \
         "shared_secret_filename must be supplied and must be an existing file"
     assert admin_info_filename is not None and os.path.isfile(admin_info_filename), \
