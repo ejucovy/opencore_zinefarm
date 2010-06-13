@@ -18,9 +18,22 @@ setup(name='opencore_zinefarm',
       include_package_data=True,
       zip_safe=False,
       install_requires=[
-          # -*- Extra requirements: -*-
+        "Werkzeug",
+        "Jinja2",
+        "SQLAlchemy==0.5.8",
+        "libopencore",
+        "simplejson",
+        "pytz",
+        "Babel",
+        "lxml",
+        "html5lib",
+        "Paste",
+        "WebOb",
+        "pysqlite",
+        "topp.utils",
       ],
       entry_points="""
-      # -*- Entry points: -*-
+      [paste.app_factory]
+      main = opencore_zinefarm.paste:app_factory
       """,
       )
