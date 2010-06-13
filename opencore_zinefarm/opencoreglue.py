@@ -41,24 +41,19 @@ class OpencoreRequest(Request):
 class CustomRequestApp(Zine):
     request_class = OpencoreRequest
 
-
-def getusers(_project=None):
-    project, domain, admin, password = [i.strip() for i in open("project.txt").readlines()]
-    if _project:
-        project = _project
-
-    print "%s/projects/%s" % (domain, project)
-    
-    return get_users_for_project(project, domain, (admin, password))
-
 from topp.utils import memorycache
 
 @memorycache.cache(120)
-def find_role_for_user(username, project):
+def find_role_for_user(username, project, environ):
     if username is None:
         return "Anonymous"
 
-    users = getusers(project)
+    admin_file = environ['OPENCORE_ADMIN_INFO_FILENAME']
+    admin, password = file(admin_file).read().strip().split(":")
+    domain = environ['OPENCORE_INTERNAL_ROOT_URL']
+
+    users = get_users_for_project(project, domain, (admin, password))
+
     for user in users:
         name = user['username']
         if name != username: continue
@@ -85,7 +80,8 @@ def fixup_local_user_record(user, request):
         return
 
     role = find_role_for_user(username, 
-                              request.environ['HTTP_X_OPENPLANS_PROJECT'])
+                              request.environ['HTTP_X_OPENPLANS_PROJECT'],
+                              request.environ)
     print role
 
     user = User.query.filter_by(username=username).first()
