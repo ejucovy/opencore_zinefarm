@@ -53,11 +53,12 @@ class ZineFarm(object):
 
         return app(environ_copy, start_response)
 
-def app_factory(zine_instances_directory=None, 
+def app_factory(global_conf,
+                zine_instances_directory=None, 
                 shared_secret_filename=None,
                 admin_info_filename=None,
                 internal_root_url=None,
-                *args, **kw):
+                **kw):
     assert zine_instances_directory is not None and os.path.isdir(zine_instances_directory), \
         "zine_instances_directory must be supplied and must be an existing directory"
     assert shared_secret_filename is not None and os.path.isfile(shared_secret_filename), \
