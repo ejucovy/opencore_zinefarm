@@ -5,10 +5,6 @@ from zine.models import User
 import libopencore.auth
 from zine.application import Request
 
-def get_secret():
-    x = open('/home/ejucovy/opb/minimal.opencore.com/opencore.com/var/secret.txt').read().strip()
-    return x
-
 class OpencoreRequest(Request):
     def get_user(self):
         """
@@ -22,9 +18,12 @@ class OpencoreRequest(Request):
         except KeyError:
             return User.query.get_nobody()
 
+        secret_filename = self.environ['OPENCORE_SECRET_FILENAME']
+        
         try:
             username, auth = libopencore.auth.authenticate_from_cookie(
-                morsel.value, get_secret())
+                morsel.value, 
+                libopencore.auth.get_secret(secret_filename))
         except:
             return User.query.get_nobody()
 
