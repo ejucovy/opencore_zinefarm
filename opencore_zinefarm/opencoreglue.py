@@ -1,9 +1,9 @@
 from libopencore.query_project import get_users_for_project
 
 from Cookie import BaseCookie
+from zine.application import Request
 from zine.models import User
 import libopencore.auth
-from zine.application import Request
 
 class OpencoreRequest(Request):
     def get_user(self):
