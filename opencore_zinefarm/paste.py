@@ -1,8 +1,6 @@
 from zine._core import _create_zine
 import os.path
 
-from zine.application import Zine
-
 from opencore_zinefarm.opencoreglue import CustomRequestApp
 import webob.exc 
 class ZineFarm(object):

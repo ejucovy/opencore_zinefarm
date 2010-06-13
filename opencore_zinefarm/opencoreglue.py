@@ -38,6 +38,8 @@ class OpencoreRequest(Request):
                         'ejucovy@gmail.com')
         return user
 
+from zine.application import Zine
+
 class CustomRequestApp(Zine):
     request_class = OpencoreRequest
 
