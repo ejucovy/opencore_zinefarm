@@ -45,13 +45,13 @@ class CustomRequestApp(Zine):
 
 from topp.utils import memorycache
 
-@memorycache.cache(120)
+#@memorycache.cache(120)
 def find_role_for_user(username, project, environ):
     if username is None:
         return "Anonymous"
 
     admin_file = environ['OPENCORE_ADMIN_INFO_FILENAME']
-    admin, password = file(admin_file).read().strip().split(":")
+    admin, password = libopencore.auth.get_admin_info(admin_file)
     domain = environ['OPENCORE_INTERNAL_ROOT_URL']
 
     users = get_users_for_project(project, domain, (admin, password))

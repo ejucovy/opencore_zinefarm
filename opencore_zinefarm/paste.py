@@ -1,8 +1,12 @@
 from zine._core import _create_zine
 import os.path
-
+from libopencore import auth
 from opencore_zinefarm.opencoreglue import CustomRequestApp
+from opencore_zinefarm.opencoreglue import find_role_for_user
+from opencore_zinefarm.opencoreglue import new_instance
+from webob import Request
 import webob.exc 
+
 class ZineFarm(object):
     def __init__(self, zine_instances_directory,
                  shared_secret_filename,
@@ -13,22 +17,19 @@ class ZineFarm(object):
         self.admin_info_filename = admin_info_filename
         self.internal_root_url = internal_root_url
 
+    def get_instance_folder(self, environ):
+        project = environ.get('HTTP_X_OPENPLANS_PROJECT')
+        instance_folder = os.path.join(
+            self.zine_instances_directory, project)
+        return instance_folder
+
     def __call__(self, environ, start_response):
         # figure out which Zine instance to dispatch to
         # based on special request header
         project = environ.get('HTTP_X_OPENPLANS_PROJECT')
         if not project: 
             return webob.exc.HTTPNotFound("No blog found for project %s" % project)(environ, start_response)
-        instance_folder = os.path.join(
-            self.zine_instances_directory, project)
-
-        # zine makes it very difficult to instantiate its wsgi app for some reason
-        # you have to much around with another module's global
-        # i'm not sure if this is safe, and it's certainly not kosher
-        app = object.__new__(CustomRequestApp)
-        from zine import _core
-        _core._application = app
-        app.__init__(instance_folder)
+        instance_folder = self.get_instance_folder(environ)
 
         # we use a copy of the environ because it's rude to modify 
         # the environ in place; something upstream of us might not
@@ -51,7 +52,46 @@ class ZineFarm(object):
         # projects for their security policies and memberships
         environ_copy['OPENCORE_INTERNAL_ROOT_URL']  = self.internal_root_url
 
+        req = Request(environ_copy)
+
+        if req.path_info == '/opencore-create-blog':
+            return self.make_instance(environ_copy, start_response)
+
+        # zine makes it very difficult to instantiate its wsgi app for some reason
+        # you have to much around with another module's global
+        # i'm not sure if this is safe, and it's certainly not kosher
+        app = object.__new__(CustomRequestApp)
+        from zine import _core
+        _core._application = app
+        app.__init__(instance_folder)
+
         return app(environ_copy, start_response)
+
+    def make_instance(self, environ, start_response):
+        req = Request(environ)
+        user = auth.get_user(req, self.shared_secret_filename)
+        #except:
+        #    return webob.exc.HTTPForbidden("not logged in")(
+        #        environ, start_response)
+        role = find_role_for_user(user, 
+                                  environ['HTTP_X_OPENPLANS_PROJECT'],
+                                  environ)
+        if role != "ProjectAdmin":
+            return webob.exc.HTTPForbidden("can't do that now")(
+                environ, start_response)
+
+        blog_url = "%s://%s%s" % (
+            environ['HTTP_X_FORWARDED_SCHEME'],
+            environ['HTTP_X_FORWARDED_SERVER'],
+            environ['HTTP_X_FORWARDED_PATH'])
+
+        instance = self.get_instance_folder(environ)
+        dburi = "sqlite:///%s/database.db" % instance
+        new_instance(dburi,
+                     instance,
+                     blog_url)
+        return webob.exc.HTTPFound(location=blog_url)(
+            environ, start_response)
 
 def app_factory(global_conf,
                 zine_instances_directory=None, 
