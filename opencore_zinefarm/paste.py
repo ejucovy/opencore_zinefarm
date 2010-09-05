@@ -69,10 +69,11 @@ class ZineFarm(object):
 
     def make_instance(self, environ, start_response):
         req = Request(environ)
-        user = auth.get_user(req, self.shared_secret_filename)
-        #except:
-        #    return webob.exc.HTTPForbidden("not logged in")(
-        #        environ, start_response)
+        try:
+            user = auth.get_user(req, self.shared_secret_filename)
+        except:
+            return webob.exc.HTTPForbidden("not logged in")(
+                environ, start_response)
         role = find_role_for_user(user, 
                                   environ['HTTP_X_OPENPLANS_PROJECT'],
                                   environ)
@@ -87,6 +88,8 @@ class ZineFarm(object):
 
         instance = self.get_instance_folder(environ)
         dburi = "sqlite:///%s/database.db" % instance
+        if not os.path.exists(os.path.dirname(dburi)):
+            os.mkdir(os.path.dirname(dburi))
         new_instance(dburi,
                      instance,
                      blog_url)

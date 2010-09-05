@@ -20,7 +20,7 @@ setup(name='opencore_zinefarm',
       install_requires=[
         "Werkzeug",
         "Jinja2",
-        "SQLAlchemy",
+        "SQLAlchemy==0.6.3",
         "libopencore",
         "simplejson",
         "pytz",
@@ -31,6 +31,7 @@ setup(name='opencore_zinefarm',
         "WebOb",
         "pysqlite",
         "topp.utils",
+        "sqlalchemy-migrate",
       ],
       entry_points="""
       [paste.app_factory]
